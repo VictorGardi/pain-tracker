@@ -1,6 +1,6 @@
 import streamlit as st
-from pages import show_progress, add_progress
-from utils import connect_to_db, login
+from pages import show_progress, add_progress, login
+from utils import connect_to_db
 
 st.header('Pain Tracker')
 

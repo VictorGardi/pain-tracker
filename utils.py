@@ -1,31 +1,49 @@
 import os
+from datetime import datetime
 
-import streamlit as st
+from bson import ObjectId
 from pymongo import MongoClient
+
 
 
 def connect_to_db() -> MongoClient:
     client = MongoClient(os.environ.get("DB_CONNECTION_STRING"))
     return client.pain_tracker
 
-def login() -> None:
-    user_placeholder = st.empty()
-    pwd_placeholder = st.empty()
-    username = user_placeholder.text_input("Please input Username")
-    pwd = pwd_placeholder.text_input("Please input password", type="password")
-    if username != "":
-        db = connect_to_db()
-        user_collection = db.users
-        user = user_collection.find_one({"username": username})
-        if user is None:
-            st.text("Sorry, that user does not exist!")
-        else:
-            if pwd != "":
-                if pwd == user["password"]:
-                    user_placeholder.empty()
-                    pwd_placeholder.empty()
-                    st.session_state.logged_in = True
-                else:
-                    st.text("Sorry, that is not correct")
+def get_aggregated_progress(collection, user_id, injury, start_date, end_date):
+    result = collection.aggregate([
+        {
+            '$match': {
+                'injury': injury, 
+                'user': ObjectId(user_id), 
+                'date': {
+                    '$gte': start_date.strftime("%Y-%m-%d"), 
+                    '$lte': end_date.strftime("%Y-%m-%d")
+                }
+            }
+        }, {
+            '$sort': {
+                'date': 1
+            }
+        }, {
+            '$group': {
+                '_id': None, 
+                'dates': {
+                    '$push': '$date'
+                }, 
+                'status': {
+                    '$push': '$status'
+                }, 
+                'activity_yesterday': {
+                    '$push': '$activity_yesterday'
+                }, 
+                'activity_today': {
+                    '$push': '$activity_today'
+                }
+            }
+        }
+    ])
+    return list(result)[0]
+
         
     
