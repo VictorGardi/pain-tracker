@@ -1,30 +1,42 @@
+from typing import Dict
 import streamlit as st
-from pages import show_progress, add_progress, login
-from utils import connect_to_db
+from bson import ObjectId
+from utils import connect_to_db 
+from login import check_password
 
-st.header('Pain Tracker')
+def add_progress(user: ObjectId) -> None:
+    st.markdown("**Add progress**")
+    st.sidebar.markdown("# Add progress ❄️")
 
-def run_app():
-    with st.sidebar:
-        choice = st.radio("What do you want to do today?", ["Show progress","Add progress"])
+    db = connect_to_db()
+    collection = db.pain_tracker.progress
+    injuries = collection.distinct("injury")
+    injuries.insert(0, "Add new")
+    injury_selection = st.selectbox('Which injury do you want to add progress to?',injuries)
+    if injury_selection == "Add new":
+        injury = st.text_input("Please name your injury")
+    else:
+        injury = injury_selection
 
-    if choice == "Show progress":
-        show_progress()
-    elif choice == "Add progress":
-        add_progress()
-
-def main() -> None:
-    
-    if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False
-    if not st.session_state.logged_in:
-        login()
-    if st.session_state.logged_in:
-        st.session_state.db = connect_to_db()
-        run_app()
-
-
+    date = st.date_input("For which date do you want to add progress?")
+    status = st.slider("On a scale from 1-10, how bad does your injury feel?", min_value=1, max_value=10)    
+    yesterday = st.text_input("What did you do yesterday?")
+    today = st.text_input("What did you do today?")
+    doc = {
+        "user": user,
+        "injury": injury,
+        "date": date.strftime("%Y-%m-%d"),
+        "status": status,
+        "activity_yesterday": yesterday,
+        "activity_today": today
+    }
+    insert_document = st.button("Add progress")
+    if insert_document:
+        result = collection.insert_one(doc)
+        if result.acknowledged:
+            st.success("Successfully added information to your progress!")
+        
 if __name__ == "__main__":
-    main()
-
-
+    user = check_password()
+    if user: 
+        add_progress(user)
