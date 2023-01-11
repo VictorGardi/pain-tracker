@@ -16,6 +16,9 @@ def show_progress(user: ObjectId):
     base_query = {"user": user}
     injuries = progress_collection.find(base_query).distinct("injury")
     injury = st.selectbox("Choose your injury of interest", injuries)
+    if not list(progress_collection.find(base_query)):
+        st.warning("No data to show yet. Add data and then come back again!")
+        st.stop()
     start_date_ = list(progress_collection.find(base_query).sort("date", +1).limit(1))[0]["date"]
     end_date_ = list(progress_collection.find(base_query).sort("date", -1).limit(1))[0]["date"]
     start_date_ = datetime.strptime(start_date_, "%Y-%m-%d")

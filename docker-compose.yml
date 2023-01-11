@@ -1,24 +1,24 @@
-version: "3.9"
+version: "3.3"
 services:
   pain_tracker:
     container_name: streamlit
     volumes:
       - .:/app
     ports:
-      - "8501:8501"
+      - "$PORT:$PORT"
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       - DB_CONNECTION_STRING=mongodb://pain_tracker:pain_tracker@mongodb:27017
-    command: streamlit run --server.port $PORT main.py
+    command: streamlit run --server.port $PORT add_progress.py
   mongodb:
     container_name: pain_tracker_db
     image: mongo:5.0
     ports:
       - 27017:27017
     volumes:
-      - pain_tracker_db:/data/db
+      - ./pain_tracker_db:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=pain_tracker
       - MONGO_INITDB_ROOT_PASSWORD=pain_tracker
