@@ -1,5 +1,7 @@
 import streamlit as st
+
 from utils import connect_to_db
+
 
 def check_password():
     """Returns `True` if the user had a correct password."""
@@ -18,23 +20,17 @@ def check_password():
         else:
             st.session_state["password_correct"] = False
 
-
     if "password_correct" not in st.session_state:
         # First run, show inputs for username + password.
         st.text_input("Username", on_change=password_entered, key="username")
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
+        st.text_input("Password", type="password", on_change=password_entered, key="password")
         return False
     elif not st.session_state["password_correct"]:
         # Password not correct, show input + error.
         st.text_input("Username", on_change=password_entered, key="username")
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
+        st.text_input("Password", type="password", on_change=password_entered, key="password")
         st.error("😕 User not known or password incorrect")
         return False
     else:
         # Password correct.
         return st.session_state["user_id"]
-
